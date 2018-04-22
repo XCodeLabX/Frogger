@@ -7,34 +7,58 @@ import java.io.PrintStream;
 import java.net.Socket;
 
 
-public class Player extends Socket {
+public class Player extends Thread {
 
+    // STATES
+        public static final int NULL = 0;
+        public static final int QUEUING_SOLO = 1;
+        public static final int QUEUING_1v1 = 2;
+    
     // ATTRIBUTES
-        BufferedReader INPUT = null;
-        PrintStream OUTPUT = null;
+        private final Socket CLIENT;
+        private BufferedReader INPUT = null;
+        private PrintStream OUTPUT = null;
+        private String MESSAGE;
+        
+        private final int STATE;
+        
+        public Frog FROG;
     
     // CONSTRUCTORS
-        public Player() throws IOException {
-            super("localhost", 8080);
+        public Player(Socket client) throws IOException {
+            CLIENT = client;
+            INPUT = new BufferedReader(new InputStreamReader(CLIENT.getInputStream()));
             
-            INPUT = new BufferedReader(new InputStreamReader(this.getInputStream()));
-            OUTPUT = new PrintStream(this.getOutputStream());
+            STATE = NULL;
+            start();
         }
 
     // DYNAMIC - METHODS
-        
-        
-        public void push(String message) {
-            OUTPUT.flush();
+
+        @Override
+        public void run() {
+            while(true) {
+                try {
+                    MESSAGE = INPUT.readLine();
+                    if (MESSAGE.equals(null)) {
+                        this.stop();
+                        disconnect();
+                    }
+                    System.out.println(MESSAGE);
+                } catch (IOException e) {
+                    System.out.println(e.toString());
+                }
+            }
         }
 
-        public void stop() throws IOException {
+        public void disconnect() throws IOException {
             INPUT.close();
-            OUTPUT.close();
-            this.close();
+            OUTPUT.close( );
+            CLIENT.close();
         }
+        
         // GETTERS
-            
+        
         
         // SETTERS
 
